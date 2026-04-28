@@ -68,6 +68,7 @@ of the integer-relation search.
 | π | Σ_{k≥0} 1/16^k · (4/(8k+1) − 2/(8k+4) − 1/(8k+5) − 1/(8k+6)) = π | bbp-multirational | **BBP, 1995** |
 | √5 | Σ_{k≥0} C(2k,k)/5^k = √5 | ramanujan-sato | gen. function |
 | ζ(4) | Σ Hₖ⁽²⁾/(k²·C(2k,k)) = (14/27)·ζ(4) | harmonic-weighted | arcsin⁴ Maclaurin at x=1/2 |
+| log φ | m(x²−x−1) = log(φ) | mahler | Pisot / Lehmer territory |
 
 The ζ(3) result is **Apéry, 1978**. The π result is **Bailey-Borwein-Plouffe, 1995** — the famous "n-th hex digit of π without computing the previous ones" formula. The Euler sums are **1775**.
 
@@ -123,7 +124,7 @@ uv run python -m ramanujan.cli summarize --dir hits/
 ```
 ramanujan/
   constants.py      mpmath constants at configurable precision (27 included)
-  generators.py     9 parameterized generator families
+  generators.py     10 parameterized generator families (incl. Mahler measure)
   pslq.py           PSLQ wrapper with spurious-relation filtering
   search.py         single-candidate grid sweep + retry logic
   multi.py          pair-candidate sweep (linear combinations)

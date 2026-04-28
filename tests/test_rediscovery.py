@@ -266,6 +266,25 @@ def test_rediscover_harmonic_central_binomial_zeta4():
     assert abs(abs(ratio) - 14 / 27) < 1e-12
 
 
+def test_rediscover_mahler_pisot_phi():
+    # m(x^2 - x - 1) = log(phi)  (golden ratio is a Pisot number)
+    with tempfile.TemporaryDirectory() as tmp:
+        hits = sweep(
+            family="mahler",
+            param_ranges=[(-1,-1),(-1,-1),(1,1),(0,0),(0,0)],
+            target="log_phi",
+            extra_basis=["pi", "log2", "log3", "sqrt5"],
+            depth=1, dps=70, max_coeff=10,
+            out_dir=Path(tmp), progress_every=0,
+        )
+    assert len(hits) == 1
+    h = hits[0]
+    cand_idx = 0
+    target_idx = list(h.basis).index("log_phi") + 1
+    ratio = -h.coeffs[target_idx] / h.coeffs[cand_idx]
+    assert abs(abs(ratio) - 1) < 1e-12
+
+
 def test_rediscover_log2_geometric():
     # log 2 = sum_{k=1} 1/(k * 2^k)
     # Family: power-weighted, params (sign=0, p=1, q=0, base_p2=2, pow_p2=1)

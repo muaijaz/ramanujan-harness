@@ -84,6 +84,39 @@ CONSTANTS: dict[str, Constant] = {
     "twin_prime": Constant("Twin Prime", lambda: mp.mpf("0.66016181584686957392781211001455577843262336028473341331")),
     "zeta_apery_sq": Constant("zeta(3)^2", lambda: mp.zeta(3) ** 2),
     "feigenbaum_d": Constant("Feigenbaum delta", lambda: mp.mpf("4.6692016091029906718532")),
+    # CM elliptic / modular: K(1/sqrt(2)) = (1/4) * sqrt(pi) * Gamma(1/4)^2 (lemniscate)
+    "K_invsqrt2": Constant(
+        "K(1/sqrt(2))", lambda: mp.ellipk(mp.mpf(1) / 2)
+    ),
+    "lemniscate": Constant(
+        "lemniscate constant 2*omega",
+        lambda: mp.gamma(mp.mpf(1) / 4) ** 2 / (2 * mp.sqrt(2 * mp.pi)),
+    ),
+    "gamma_quarter": Constant("Gamma(1/4)", lambda: mp.gamma(mp.mpf(1) / 4)),
+    "gamma_third": Constant("Gamma(1/3)", lambda: mp.gamma(mp.mpf(1) / 3)),
+    "gamma_quarter_sq": Constant("Gamma(1/4)^2", lambda: mp.gamma(mp.mpf(1) / 4) ** 2),
+    "gamma_third_cu": Constant("Gamma(1/3)^3", lambda: mp.gamma(mp.mpf(1) / 3) ** 3),
+    # Mahler measures with known closed forms
+    "lehmer_M": Constant(
+        "Lehmer M(L) (smallest known non-Kronecker)",
+        lambda: mp.mpf("1.17628081825991750654407033847403505069341580656"),
+    ),
+    # Smyth 1981: m(1 + x + y) = (3 sqrt(3) / 4 pi) L(2, chi_-3)
+    # L(2, chi_-3) = (1/9) sum chi_-3 zeta_H(2, a/3)  (we wire via clsin equivalent)
+    "smyth_3var": Constant(
+        "m(1+x+y) (Smyth)",
+        lambda: 3 * mp.sqrt(3) / (4 * mp.pi)
+        * (mp.zeta(2, mp.mpf(1) / 3) - mp.zeta(2, mp.mpf(2) / 3))
+        / 9,
+    ),
+    # j-function CM values (algebraic):  j(i)=1728, j((1+i*sqrt(3))/2)=0, j(i*sqrt(2))=8000
+    "j_sqrt2_i": Constant("j(i*sqrt(2)) = 8000", lambda: mp.mpf(8000)),
+    "j_i": Constant("j(i) = 1728", lambda: mp.mpf(1728)),
+    # L-values
+    "L2_chi3": Constant(
+        "L(2, chi_-3)",
+        lambda: (mp.zeta(2, mp.mpf(1) / 3) - mp.zeta(2, mp.mpf(2) / 3)) / 9,
+    ),
 }
 
 

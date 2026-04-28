@@ -551,6 +551,49 @@ def ramanujan_sato_value(
     return total
 
 
+def mahler_value(
+    c0: int,
+    c1: int,
+    c2: int,
+    c3: int,
+    c4: int,
+    *,
+    depth: int,  # ignored; kept for interface uniformity
+) -> mp.mpf:
+    """Mahler measure m(P) of a small-coefficient 1-variable polynomial.
+
+    P(x) = c0 + c1*x + c2*x^2 + c3*x^3 + c4*x^4   (use 0 for unused terms)
+
+    By Jensen's formula:
+        m(P) = log|leading| + sum_i log+|alpha_i|
+    where alpha_i are the roots and log+(z) = max(log z, 0).
+
+    Famous values:
+        m(x - 2) = log 2
+        m(x^2 - x - 1) = log(phi)
+        m(Lehmer's polynomial) = 0.162357612... (smallest known non-Kronecker)
+    """
+
+    coeffs = [c0, c1, c2, c3, c4]
+    # Trim trailing zeros to find actual degree
+    while coeffs and coeffs[-1] == 0:
+        coeffs.pop()
+    if len(coeffs) < 2:
+        raise ValueError("polynomial must have degree >= 1")
+    lead = coeffs[-1]
+    if lead == 0:
+        raise ValueError("leading coefficient is zero")
+    # mpmath.polyroots wants highest-degree-first
+    poly = list(reversed(coeffs))
+    try:
+        roots = mp.polyroots(poly, maxsteps=200, extraprec=50)
+    except Exception:
+        return mp.nan
+    log_lead = mp.log(mp.fabs(lead))
+    log_plus_sum = sum(mp.log(mp.fabs(r)) for r in roots if mp.fabs(r) > 1)
+    return log_lead + log_plus_sum
+
+
 def hypergeometric_sum_value(
     alpha: int,
     beta: int,
@@ -650,6 +693,13 @@ GENERATORS: dict[str, Generator] = {
         arity=5,
         evaluate=lambda fn, fd, a, b, c, depth: ramanujan_sato_value(
             fn, fd, a, b, c, depth=depth
+        ),
+    ),
+    "mahler": Generator(
+        name="mahler",
+        arity=5,
+        evaluate=lambda c0, c1, c2, c3, c4, depth: mahler_value(
+            c0, c1, c2, c3, c4, depth=depth
         ),
     ),
 }
