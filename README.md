@@ -181,6 +181,28 @@ If this is useful for your work, cite the underlying ideas:
   constants with the Ramanujan Machine.* Nature 590, 67–73.
 - Apéry, R. (1979). *Irrationalité de ζ(2) et ζ(3).* Astérisque 61.
 
+## Citation
+
+If you use this software in research, or if a sweep run on it surfaces
+a new identity, please cite the project. GitHub displays a "Cite this
+repository" button populated from `CITATION.cff`; or use:
+
+```bibtex
+@software{ramanujan_harness_2026,
+  author  = {Aijaz, Mohammad and {Claude (Anthropic)}},
+  title   = {Ramanujan Harness: A reproducible identity-discovery framework via PSLQ},
+  year    = {2026},
+  url     = {https://github.com/muaijaz/ramanujan-harness},
+  version = {0.1.0},
+  license = {MIT}
+}
+```
+
+If a sweep finds something genuinely new, an acknowledgement in the
+resulting paper or blog post is appreciated. The framework was built
+in collaboration with an AI assistant — both human and AI authorship
+are credited above.
+
 ## License
 
 MIT. See `LICENSE`.

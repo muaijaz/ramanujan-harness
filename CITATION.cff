@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this software in research or find a new identity using it, please cite both the software and acknowledge the AI-assisted construction."
+title: "Ramanujan Harness: A reproducible identity-discovery framework via PSLQ"
+authors:
+  - given-names: Mohammad
+    family-names: Aijaz
+    email: muaijaz@gmail.com
+  - given-names: Claude
+    name-suffix: "Opus 4.7 (1M context)"
+    affiliation: "Anthropic"
+    email: noreply@anthropic.com
+type: software
+repository-code: "https://github.com/muaijaz/ramanujan-harness"
+url: "https://github.com/muaijaz/ramanujan-harness"
+license: MIT
+date-released: 2026-04-28
+version: "0.1.0"
+keywords:
+  - experimental-mathematics
+  - PSLQ
+  - integer-relation-detection
+  - identity-discovery
+  - Ramanujan-Machine
+  - Apery
+  - central-binomial-sums
+  - Mahler-measure
+  - Dirichlet-L-functions
+abstract: >-
+  A discovery framework for closed-form mathematical identities. Evaluates
+  parameterized series families (central-binomial, Dirichlet character,
+  harmonic-weighted, BBP-style multirational, Ramanujan-Sato factorial,
+  Mahler measure, etc.) at high precision and runs PSLQ to find short
+  integer relations against a basis of standard mathematical constants.
+  Sixteen known identities are blind-rediscovered as pytest fixtures,
+  including Apery 1978, Bailey-Borwein-Plouffe 1995, Euler 1775, and the
+  classical Catalan formula. Built in approximately one evening with
+  Anthropic's Claude as collaborator; intended primarily as a teaching
+  artifact and reproducible search tool.
