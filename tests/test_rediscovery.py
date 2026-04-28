@@ -240,6 +240,28 @@ def test_rediscover_ramanujan_sato_sqrt5():
     assert abs(abs(ratio) - 1) < 1e-12
 
 
+def test_rediscover_harmonic_central_binomial_zeta4():
+    # Σ H_k^(2) / (k^2 · C(2k,k)) = (14/27) · zeta(4)
+    # Found via harness sweep; verified to 100 digits. Likely in
+    # Borwein-Bradley 1997 catalog of Apery-like Euler sums but not
+    # checked against the literature.
+    with tempfile.TemporaryDirectory() as tmp:
+        hits = sweep(
+            family="harmonic-weighted",
+            param_ranges=[(0, 0), (2, 2), (1, 1), (2, 2)],
+            target="zeta4",
+            extra_basis=["pi", "log2", "zeta2", "zeta3"],
+            depth=200, dps=80, max_coeff=100,
+            out_dir=Path(tmp), progress_every=0,
+        )
+    assert len(hits) == 1
+    h = hits[0]
+    cand_idx = 0
+    target_idx = list(h.basis).index("zeta4") + 1
+    ratio = -h.coeffs[target_idx] / h.coeffs[cand_idx]
+    assert abs(abs(ratio) - 14 / 27) < 1e-12
+
+
 def test_rediscover_log2_geometric():
     # log 2 = sum_{k=1} 1/(k * 2^k)
     # Family: power-weighted, params (sign=0, p=1, q=0, base_p2=2, pow_p2=1)
