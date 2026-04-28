@@ -241,10 +241,14 @@ def test_rediscover_ramanujan_sato_sqrt5():
 
 
 def test_rediscover_harmonic_central_binomial_zeta4():
-    # Σ H_k^(2) / (k^2 · C(2k,k)) = (14/27) · zeta(4)
-    # Found via harness sweep; verified to 100 digits. Likely in
-    # Borwein-Bradley 1997 catalog of Apery-like Euler sums but not
-    # checked against the literature.
+    # Σ H_k^(2) / (k^2 · C(2k,k)) = (14/27) · zeta(4) = 7*pi^4/1215
+    # Classical: equivalent to arcsin^4(1/2) Maclaurin expansion.
+    #   arcsin^4(x) = (3/2) * sum (2x)^(2k) * H_{k-1}^(2) / (k^2 * C(2k,k))
+    # Setting x=1/2:    sum H_{k-1}^(2)/(k^2 C(2k,k)) = (2/3)(pi/6)^4 = pi^4/1944
+    # Using H_k^(2) = H_{k-1}^(2) + 1/k^2 and Comtet's
+    #   sum 1/(k^4 C(2k,k)) = 17*pi^4/3240
+    # gives    sum H_k^(2)/(k^2 C(2k,k)) = pi^4/1944 + 17*pi^4/3240 = 7*pi^4/1215.
+    # Likely first published in Zucker 1985 or Lewin's polylog monograph.
     with tempfile.TemporaryDirectory() as tmp:
         hits = sweep(
             family="harmonic-weighted",
