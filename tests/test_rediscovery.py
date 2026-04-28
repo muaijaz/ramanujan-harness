@@ -125,6 +125,121 @@ def test_rediscover_lehmer_golden_ratio():
     assert abs(abs(ratio) - 2) < 1e-12
 
 
+def test_rediscover_catalan_via_dirichlet_chi4():
+    # G = L(2, chi_4) = sum_{k>=1} chi_4(k)/k^2
+    with tempfile.TemporaryDirectory() as tmp:
+        hits = sweep(
+            family="dirichlet",
+            param_ranges=[(3, 3), (2, 2), (0, 0)],
+            target="catalan",
+            extra_basis=["pi", "log2"],
+            depth=100, dps=70, max_coeff=10,
+            out_dir=Path(tmp), progress_every=0,
+        )
+    assert len(hits) == 1
+    h = hits[0]
+    cand_idx = 0
+    target_idx = list(h.basis).index("catalan") + 1
+    ratio = -h.coeffs[target_idx] / h.coeffs[cand_idx]
+    assert abs(abs(ratio) - 1) < 1e-12
+
+
+def test_rediscover_leibniz_pi_over_4():
+    # pi = 4 * L(1, chi_4) = 4 * (1 - 1/3 + 1/5 - ...)
+    with tempfile.TemporaryDirectory() as tmp:
+        hits = sweep(
+            family="dirichlet",
+            param_ranges=[(3, 3), (1, 1), (0, 0)],
+            target="pi",
+            extra_basis=["log2", "catalan"],
+            depth=100, dps=70, max_coeff=10,
+            out_dir=Path(tmp), progress_every=0,
+        )
+    assert len(hits) == 1
+    h = hits[0]
+    cand_idx = 0
+    target_idx = list(h.basis).index("pi") + 1
+    ratio = -h.coeffs[target_idx] / h.coeffs[cand_idx]
+    assert abs(abs(ratio) - 1 / 4) < 1e-12
+
+
+def test_rediscover_euler_sum_zeta3():
+    # Euler 1775: sum H_k / k^2 = 2 * zeta(3)
+    with tempfile.TemporaryDirectory() as tmp:
+        hits = sweep(
+            family="harmonic-weighted",
+            param_ranges=[(0, 0), (2, 2), (0, 0), (1, 1)],
+            target="zeta3",
+            extra_basis=["pi", "log2", "zeta2"],
+            depth=100, dps=70, max_coeff=10,
+            out_dir=Path(tmp), progress_every=0,
+        )
+    assert len(hits) == 1
+    h = hits[0]
+    cand_idx = 0
+    target_idx = list(h.basis).index("zeta3") + 1
+    ratio = -h.coeffs[target_idx] / h.coeffs[cand_idx]
+    assert abs(abs(ratio) - 2) < 1e-12
+
+
+def test_rediscover_euler_sum_zeta4():
+    # Euler: sum H_k / k^3 = (5/4) * zeta(4)
+    with tempfile.TemporaryDirectory() as tmp:
+        hits = sweep(
+            family="harmonic-weighted",
+            param_ranges=[(0, 0), (3, 3), (0, 0), (1, 1)],
+            target="zeta4",
+            extra_basis=["pi", "log2", "zeta2", "zeta3"],
+            depth=100, dps=70, max_coeff=10,
+            out_dir=Path(tmp), progress_every=0,
+        )
+    assert len(hits) == 1
+    h = hits[0]
+    cand_idx = 0
+    target_idx = list(h.basis).index("zeta4") + 1
+    ratio = -h.coeffs[target_idx] / h.coeffs[cand_idx]
+    assert abs(abs(ratio) - 5 / 4) < 1e-12
+
+
+def test_rediscover_bbp_pi():
+    # Bailey-Borwein-Plouffe (1995):
+    # pi = sum_{k>=0} 1/16^k (4/(8k+1) - 2/(8k+4) - 1/(8k+5) - 1/(8k+6))
+    with tempfile.TemporaryDirectory() as tmp:
+        hits = sweep(
+            family="bbp-multirational",
+            param_ranges=[(16,16),(8,8),(4,4),(0,0),(0,0),(-2,-2),(-1,-1),(-1,-1),(0,0),(0,0)],
+            target="pi",
+            extra_basis=["log2", "catalan"],
+            depth=80, dps=60, max_coeff=10,
+            out_dir=Path(tmp), progress_every=0,
+        )
+    assert len(hits) == 1
+    h = hits[0]
+    cand_idx = 0
+    target_idx = list(h.basis).index("pi") + 1
+    ratio = -h.coeffs[target_idx] / h.coeffs[cand_idx]
+    assert abs(abs(ratio) - 1) < 1e-12
+
+
+def test_rediscover_ramanujan_sato_sqrt5():
+    # Generating function: sum C(2k,k) x^k = 1/sqrt(1-4x). At x=1/5: sum C(2k,k)/5^k = sqrt(5).
+    with tempfile.TemporaryDirectory() as tmp:
+        hits = sweep(
+            family="ramanujan-sato",
+            param_ranges=[(2,2),(1,1),(1,1),(0,0),(5,5)],
+            target="sqrt5",
+            extra_basis=["pi", "log2"],
+            depth=800, dps=60, max_coeff=10,
+            out_dir=Path(tmp), progress_every=0,
+        )
+    assert len(hits) == 1
+    h = hits[0]
+    cand_idx = 0
+    target_idx = list(h.basis).index("sqrt5") + 1
+    ratio = -h.coeffs[target_idx] / h.coeffs[cand_idx]
+    assert abs(abs(ratio) - 1) < 1e-12
+
+
 def test_rediscover_log2_geometric():
     # log 2 = sum_{k=1} 1/(k * 2^k)
     # Family: power-weighted, params (sign=0, p=1, q=0, base_p2=2, pow_p2=1)

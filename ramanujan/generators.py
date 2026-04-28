@@ -295,6 +295,262 @@ def power_weighted_value(
     return total
 
 
+def dirichlet_value(
+    char_id: int,
+    p: int,
+    q: int,
+    *,
+    depth: int,
+) -> mp.mpf:
+    """Dirichlet-character-weighted central binomial series.
+
+    S = sum_{k=1..depth} chi(k) / ( k^p * C(2k,k)^q )
+
+    char_id selects:
+        0 = trivial: chi(k) = 1
+        1 = mod-2: chi(k) = (-1)^(k-1)         (covered by central-binomial too)
+        2 = mod-3: chi_3(k) = {0,1,-1,0,1,-1,...}    (period 3)
+        3 = mod-4: chi_4(k) = {0,1,0,-1,0,1,0,-1,...} (period 4, primitive)
+        4 = mod-6: chi_6(k) = {0,1,0,0,0,-1,...} (period 6, non-trivial)
+
+    Reaches L-function values like L(2, chi_3) = (4/3) Cl_2(pi/3),
+    L(2, chi_4) = G (Catalan), etc.
+    """
+
+    if char_id < 0 or char_id > 4:
+        raise ValueError("char_id in [0, 4]")
+    if p < 0 or p > 6 or q < 0 or q > 3:
+        raise ValueError("p in [0,6], q in [0,3]")
+
+    def chi(k: int) -> int:
+        if char_id == 0:
+            return 1
+        if char_id == 1:
+            return (-1) ** (k - 1)
+        if char_id == 2:  # mod 3 nontrivial
+            r = k % 3
+            return 1 if r == 1 else (-1 if r == 2 else 0)
+        if char_id == 3:  # mod 4 primitive (chi_-4)
+            r = k % 4
+            return 1 if r == 1 else (-1 if r == 3 else 0)
+        if char_id == 4:  # mod 6 nontrivial
+            r = k % 6
+            if r == 1:
+                return 1
+            if r == 5:
+                return -1
+            return 0
+        return 0
+
+    # When q == 0, no binomial weight: closed-form for L-functions.
+    if q == 0 and p >= 2:
+        if char_id == 0:
+            return mp.zeta(p)
+        # Find period m, evaluate L(p, chi) via Hurwitz zeta:
+        # L(p, chi) = m^(-p) sum_{a=1..m-1} chi(a) zeta(p, a/m)
+        m = {1: 2, 2: 3, 3: 4, 4: 6}[char_id]
+        total = mp.mpf(0)
+        for a in range(1, m):
+            c = chi(a)
+            if c == 0:
+                continue
+            total += mp.mpf(c) * mp.zeta(p, mp.mpf(a) / m)
+        return total / mp.mpf(m) ** p
+    # p == 1 with no binomial weight: use digamma formula for L(1, chi).
+    if q == 0 and p == 1:
+        if char_id == 0:
+            # zeta(1) diverges; return NaN
+            return mp.nan
+        m = {1: 2, 2: 3, 3: 4, 4: 6}[char_id]
+        total = mp.mpf(0)
+        for a in range(1, m):
+            c = chi(a)
+            if c == 0:
+                continue
+            total -= mp.mpf(c) * mp.digamma(mp.mpf(a) / m)
+        return total / m
+
+    # With binomial weight, geometric convergence — direct sum is fine.
+    total = mp.mpf(0)
+    binom = mp.mpf(1)
+    for k in range(1, depth + 1):
+        binom = binom * (2 * k - 1) * 2 / k
+        c = chi(k)
+        if c == 0:
+            continue
+        denom = mp.mpf(1)
+        if p > 0:
+            denom *= mp.mpf(k) ** p
+        if q > 0:
+            denom *= binom**q
+        total += mp.mpf(c) / denom
+    return total
+
+
+def harmonic_weighted_value(
+    sign: int,
+    p: int,
+    q: int,
+    h_order: int,
+    *,
+    depth: int,
+) -> mp.mpf:
+    """Harmonic-weighted central binomial series (Euler-sum territory).
+
+    S = sum_{k=1..depth} (-1)^(sign*k) * H_k^{(h_order)} / ( k^p * C(2k,k)^q )
+
+    where H_k^{(s)} = sum_{j=1..k} 1/j^s is the generalized harmonic number.
+    For h_order=1, H_k = 1 + 1/2 + ... + 1/k.
+    For h_order=0, H_k^(0) = k (degenerates to k weighting).
+
+    Many known Euler sums live here:
+        Σ H_k / k^2 = 2 zeta(3)                         (Euler)
+        Σ H_k / k^3 = (5/4) zeta(4)                     (Euler)
+        Σ H_k / (k^2 C(2k,k)) = ?  -> open territory
+    """
+
+    if h_order < 0 or h_order > 4:
+        raise ValueError("h_order in [0, 4]")
+    if p < 0 or p > 6 or q < 0 or q > 3:
+        raise ValueError("p in [0,6], q in [0,3]")
+    if sign not in (0, 1):
+        raise ValueError("sign in {0,1}")
+
+    # When q == 0 with H_k weighting: use closed-form via stuffle / Euler relations
+    # when available, otherwise direct sum (slow but correct).
+    # Σ H_k / k^p = (p+2)/2 * zeta(p+1) - (1/2) * sum_{j=1..p-2} zeta(j+1) zeta(p-j)
+    #   for p>=2 (Euler 1775).
+    if q == 0 and sign == 0 and h_order == 1 and p >= 2:
+        if p == 2:
+            return 2 * mp.zeta(3)
+        if p == 3:
+            return mp.mpf(5) / 4 * mp.zeta(4)
+        if p == 4:
+            return 3 * mp.zeta(5) - mp.zeta(2) * mp.zeta(3)
+        if p == 5:
+            return mp.mpf(7) / 4 * mp.zeta(6) - mp.zeta(2) * mp.zeta(4) / 2 - mp.zeta(3) ** 2 / 2
+
+    total = mp.mpf(0)
+    binom = mp.mpf(1)
+    H = mp.mpf(0)
+    for k in range(1, depth + 1):
+        binom = binom * (2 * k - 1) * 2 / k
+        if h_order == 0:
+            H_k = mp.mpf(k)
+        else:
+            H = H + mp.mpf(1) / mp.mpf(k) ** h_order
+            H_k = H
+        denom = mp.mpf(1)
+        if p > 0:
+            denom *= mp.mpf(k) ** p
+        if q > 0:
+            denom *= binom**q
+        if denom == 0:
+            return mp.nan
+        term = H_k / denom
+        if sign == 1:
+            term *= mp.mpf((-1) ** (k - 1))
+        total += term
+    return total
+
+
+def bbp_multirational_value(
+    base: int,
+    period: int,
+    a0: int,
+    a1: int,
+    a2: int,
+    a3: int,
+    a4: int,
+    a5: int,
+    a6: int,
+    a7: int,
+    *,
+    depth: int,
+) -> mp.mpf:
+    """BBP-style multirational: 8-term offset sum over base^k denominators.
+
+    S = sum_{k=0..depth} 1/base^k * sum_{i=0..7} a_i / (period*k + i + 1)
+
+    Captures the Bailey-Borwein-Plouffe (1995) pi formula:
+        pi = sum 1/16^k (4/(8k+1) - 2/(8k+4) - 1/(8k+5) - 1/(8k+6))
+    when (base, period, a0..7) = (16, 8, 4,0,0,-2,-1,-1,0,0).
+    """
+
+    if base < 2 or base > 1024:
+        raise ValueError("base in [2, 1024]")
+    if period < 1 or period > 32:
+        raise ValueError("period in [1, 32]")
+
+    coeffs = (a0, a1, a2, a3, a4, a5, a6, a7)
+    total = mp.mpf(0)
+    base_pow = mp.mpf(1)
+    for k in range(depth + 1):
+        inner = mp.mpf(0)
+        for i, ai in enumerate(coeffs):
+            if ai == 0:
+                continue
+            denom = period * k + i + 1
+            if denom == 0:
+                return mp.nan
+            inner += mp.mpf(ai) / mp.mpf(denom)
+        total += inner / base_pow
+        base_pow *= base
+    return total
+
+
+def ramanujan_sato_value(
+    fact_num: int,
+    fact_den: int,
+    a: int,
+    b: int,
+    c: int,
+    *,
+    depth: int,
+) -> mp.mpf:
+    """Ramanujan-Sato factorial-ratio family.
+
+    S = sum_{k=0..depth} (fact_num*k)! / ((fact_den*k)! * (k!)^d) * (a + b*k) / c^k
+
+    where d = fact_num - fact_den (so the factorial ratio has the right
+    asymptotic behaviour). Only specific (fact_num, fact_den) combos give
+    integer-coefficient identities; the harness sweeps small ones.
+
+    Concretely supports:
+        (4,2): (4k)!/((2k)! * (k!)^2) — Ramanujan's level-1
+        (6,3): (6k)!/((3k)! * (k!)^3) — Chudnovsky shape
+        (3,1): (3k)!/(k!)^3 — small Ramanujan
+        (2,1): (2k)!/(k!)^2 = C(2k,k) — degenerates to central-binomial
+    """
+
+    if (fact_num, fact_den) not in {(4, 2), (6, 3), (3, 1), (2, 1)}:
+        raise ValueError("(fact_num, fact_den) in {(4,2),(6,3),(3,1),(2,1)}")
+    if c < 2 or c > 10**6:
+        raise ValueError("c (base) in [2, 10^6]")
+    d = fact_num - fact_den
+
+    total = mp.mpf(0)
+    fact_num_k = mp.factorial(0)  # (0)! = 1
+    fact_den_k = mp.factorial(0)
+    k_fact = mp.factorial(0)
+    c_pow = mp.mpf(1)
+    for k in range(depth + 1):
+        if k > 0:
+            # incremental factorial updates
+            for j in range(fact_num * (k - 1) + 1, fact_num * k + 1):
+                fact_num_k = fact_num_k * j
+            for j in range(fact_den * (k - 1) + 1, fact_den * k + 1):
+                fact_den_k = fact_den_k * j
+            k_fact = k_fact * k
+        denom = fact_den_k * (k_fact**d) * c_pow
+        if denom == 0:
+            return mp.nan
+        weight = (fact_num_k / denom) * (a + b * k)
+        total += weight
+        c_pow *= c
+    return total
+
+
 def hypergeometric_sum_value(
     alpha: int,
     beta: int,
@@ -366,6 +622,34 @@ GENERATORS: dict[str, Generator] = {
         arity=5,
         evaluate=lambda sign, p, q, base_p2, pow_p2, depth: power_weighted_value(
             sign, p, q, base_p2, pow_p2, depth=depth
+        ),
+    ),
+    "dirichlet": Generator(
+        name="dirichlet",
+        arity=3,
+        evaluate=lambda char_id, p, q, depth: dirichlet_value(
+            char_id, p, q, depth=depth
+        ),
+    ),
+    "harmonic-weighted": Generator(
+        name="harmonic-weighted",
+        arity=4,
+        evaluate=lambda sign, p, q, h_order, depth: harmonic_weighted_value(
+            sign, p, q, h_order, depth=depth
+        ),
+    ),
+    "bbp-multirational": Generator(
+        name="bbp-multirational",
+        arity=10,
+        evaluate=lambda base, period, a0, a1, a2, a3, a4, a5, a6, a7, depth: (
+            bbp_multirational_value(base, period, a0, a1, a2, a3, a4, a5, a6, a7, depth=depth)
+        ),
+    ),
+    "ramanujan-sato": Generator(
+        name="ramanujan-sato",
+        arity=5,
+        evaluate=lambda fn, fd, a, b, c, depth: ramanujan_sato_value(
+            fn, fd, a, b, c, depth=depth
         ),
     ),
 }

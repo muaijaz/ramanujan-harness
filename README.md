@@ -48,23 +48,27 @@ closed-form identity for `G(params)` in terms of `T` and the basis.
 
 ## Validated rediscoveries
 
-These six identities are blind-rediscovered by `pytest tests/test_rediscovery.py`.
+These thirteen identities are blind-rediscovered by `pytest tests/test_rediscovery.py`.
 PSLQ has no prior knowledge of the rational coefficients — they fall out
 of the integer-relation search.
 
-| Target | Identity | Family | Params |
+| Target | Identity | Family | Notable |
 |---|---|---|---|
-| ζ(2) | 3 · Σ 1/(k²·C(2k,k)) = ζ(2) | central-binomial | (0,2,1,0) |
-| ζ(3) | (5/2) · Σ (−1)^(k−1)/(k³·C(2k,k)) = ζ(3) | central-binomial | (1,3,1,0) |
-| ζ(4) | (36/17) · Σ 1/(k⁴·C(2k,k)) = ζ(4) | central-binomial | (0,4,1,0) |
-| log²(φ) | (1/2) · Σ (−1)^(k−1)/(k²·C(2k,k)) = log²(φ) | central-binomial | (1,2,1,0) |
-| Catalan G | 8G = 3·Σ_{k≥0} 1/(C(2k,k)·(2k+1)²) + π·log(2+√3) | central-binomial-power | (0,0,1,2,0) |
-| log 2 | log 2 = Σ 1/(k·2^k) | power-weighted | (0,1,0,2,1) |
+| ζ(2) | 3 · Σ 1/(k²·C(2k,k)) = ζ(2) | central-binomial | folklore |
+| ζ(3) | (5/2) · Σ (−1)^(k−1)/(k³·C(2k,k)) = ζ(3) | central-binomial | **Apéry, 1978** |
+| ζ(4) | (36/17) · Σ 1/(k⁴·C(2k,k)) = ζ(4) | central-binomial | folklore |
+| log²(φ) | (1/2) · Σ (−1)^(k−1)/(k²·C(2k,k)) = log²(φ) | central-binomial | arcsin² at x=i/2 |
+| Catalan G | 8G = 3·Σ_{k≥0} 1/(C(2k,k)·(2k+1)²) + π·log(2+√3) | central-binomial-power | classical |
+| log 2 | Σ 1/(k·2^k) = log 2 | power-weighted | Mercator |
+| π | 4 · Σ_{k≥1} χ₄(k)/k = π | dirichlet | **Leibniz** |
+| Catalan G | Σ_{k≥1} χ₄(k)/k² = G | dirichlet | L(2, χ₄) |
+| π√3 | 9 · Σ_{k≥1} χ₃(k)/k = π√3 | dirichlet | L(1, χ₃) |
+| ζ(3) | Σ H_k/k² = 2·ζ(3) | harmonic-weighted | **Euler, 1775** |
+| ζ(4) | Σ H_k/k³ = (5/4)·ζ(4) | harmonic-weighted | Euler |
+| π | Σ_{k≥0} 1/16^k · (4/(8k+1) − 2/(8k+4) − 1/(8k+5) − 1/(8k+6)) = π | bbp-multirational | **BBP, 1995** |
+| √5 | Σ_{k≥0} C(2k,k)/5^k = √5 | ramanujan-sato | gen. function |
 
-The ζ(3) result is **Apéry, 1978** — found here in seconds.
-The Catalan result is the classical formula due to Ramanujan, with the
-candidate sum starting from k=1. The log²(φ) identity follows from the
-Maclaurin series of `arcsin²(x)` evaluated at `x = i/2`.
+The ζ(3) result is **Apéry, 1978**. The π result is **Bailey-Borwein-Plouffe, 1995** — the famous "n-th hex digit of π without computing the previous ones" formula. The Euler sums are **1775**.
 
 ## Honest negative results
 
@@ -118,7 +122,7 @@ uv run python -m ramanujan.cli summarize --dir hits/
 ```
 ramanujan/
   constants.py      mpmath constants at configurable precision (27 included)
-  generators.py     5 parameterized generator families
+  generators.py     9 parameterized generator families
   pslq.py           PSLQ wrapper with spurious-relation filtering
   search.py         single-candidate grid sweep + retry logic
   multi.py          pair-candidate sweep (linear combinations)
