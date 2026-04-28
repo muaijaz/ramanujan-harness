@@ -1,0 +1,49 @@
+{
+  "basis": [
+    "1",
+    "zeta4",
+    "zeta2",
+    "zeta3",
+    "zeta5",
+    "zeta6",
+    "zeta7",
+    "pi",
+    "pi2",
+    "pi3",
+    "pi4",
+    "log2",
+    "log3",
+    "catalan"
+  ],
+  "coeffs": [
+    -36,
+    0,
+    17,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "depth": 200,
+  "dps": 70,
+  "elapsed_seconds": 70.87230515480042,
+  "family": "central-binomial-power",
+  "norm": 36,
+  "params": [
+    0,
+    4,
+    1,
+    0,
+    0
+  ],
+  "residual_log10": -70.0,
+  "target": "zeta4"
+}
